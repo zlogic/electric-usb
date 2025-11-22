@@ -1,0 +1,16 @@
+{
+  "name": "electric-usb",
+  "version": "0.0.1",
+  "description": "An minimalist Electron app allowing to open WebUSB sites without using a full version of Chrome",
+  "license": "GPL-3.0-only",
+  "author": "Dmitrii Zolotukhin",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "electron": "^39.2.3"
+  }
+}
