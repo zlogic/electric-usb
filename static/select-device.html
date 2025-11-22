@@ -6,11 +6,11 @@
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'"
+      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
     />
     <meta
       http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'"
+      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
     />
     <title>Hello from Electron renderer!</title>
     <style type="text/css">
@@ -77,7 +77,12 @@
 	padding: 10px;
       }
       li>a:hover {
-	background: #ccc;
+	background: #666;
+	color: #fff;
+      }
+      li>a:active {
+	background: #f90;
+	color: #fff;
       }
       li:first-child>a:hover {
 	border-radius: 9px 9px 0 0;
@@ -97,23 +102,39 @@
       <div class="round-border">
         <h1 class="no-shrink">Approve USB device permissions</h1>
         <p class="no-shrink">Request from <span id="origin">https://launcher.keychron.com/</span></p>
-	<ul>
-	  <li><a id="1">Hello <span class="checkbox">✅</span></a></li>
-	  <li><a id="2">World</a></li>
-	  <li><a id="3">And</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	  <li><a id="4">Everyone</a></li>
-	</ul>
+	<ul id="devicesList"></ul>
       </div>
     </div>
   </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const devicesList = document.querySelector("#devicesList");
+  const updateDevicesList = (devices) => {
+    while(devicesList.firstChild) {
+      devicesList.removeChild(devicesList.firstChild);
+    }
+    for (const device of devices) {
+      let deviceItem = document.createElement("li");
+      let deviceLink = document.createElement("a");
+      deviceLink.textContent = device.name + device.guid;
+      if (device.serialNumber !== undefined) {
+	deviceLink.textContent = device.name + ' [' + device.vendorId + ':' + device.productId + ' ' + device.serialNumber + ']';
+      } else {
+        deviceLink.textContent = device.name + ' [' + device.vendorId + ':' + device.productId + ']';
+      }
+      if (device.approved) {
+	deviceLink.insertAdjacentHTML('beforeend', '<span class="checkbox">✅</span>');
+      }
+      deviceLink.addEventListener('click', (event) => {
+	event.preventDefault();
+	window.electronAPI.deviceSelected(device.deviceId);
+      });
+      deviceItem.append(deviceLink);
+      devicesList.append(deviceItem);
+    }
+  };
+
+  window.electronAPI.onSelectDevice(updateDevicesList);
+});
+</script>
