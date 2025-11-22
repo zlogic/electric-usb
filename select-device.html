@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="transparent" content="true">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'"
+    />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'unsafe-inline'"
+    />
+    <title>Hello from Electron renderer!</title>
+    <style type="text/css">
+      body {
+	height: 100vh;
+	margin: 0;
+        user-select: none;
+	font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,Helvetica Neue,Arial,Noto Sans,sans-serif;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+      }
+      .blur-background {
+	position: fixed;
+	width: 100vw;
+	height: 100vh;
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+	top: 0;
+	left: 0;
+	z-index: -1;
+      }
+      .center-page {
+	align-self: center;
+      }
+      .round-border {
+        border: 1px solid #ccc;
+	border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	padding: 10px;
+	background-color: #fff;
+	display: flex;
+	flex-direction: column;
+	max-height: 80vh;
+	overflow: clip;
+      }
+      .no-shrink {
+	flex-shrink: 0;
+      }
+      ul {
+	list-style: none outside none;
+	margin: 0;
+	padding: 0;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	overflow: auto;
+	flex-shrink: 1;
+      }
+      li {
+	border-bottom: 1px solid #ccc;
+      }
+      li:last-child {
+	border-bottom: none;
+      }
+      span.checkbox {
+	float: right;
+      }
+      li>a {
+	display: block;
+	padding: 10px;
+      }
+      li>a:hover {
+	background: #ccc;
+      }
+      li:first-child>a:hover {
+	border-radius: 9px 9px 0 0;
+	-webkit-border-radius: 9px 9px 0 0;
+	-moz-border-radius: 9px 9px 0 0;
+      }
+      li:last-child>a:hover {
+	border-radius: 0 0 9px 9px;
+	-webkit-border-radius: 0 0 9px 9px;
+	-moz-border-radius: 0 0 9px 9px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blur-background"></div>
+    <div class="center-page">
+      <div class="round-border">
+        <h1 class="no-shrink">Approve USB device permissions</h1>
+        <p class="no-shrink">Request from <span id="origin">https://launcher.keychron.com/</span></p>
+	<ul>
+	  <li><a id="1">Hello <span class="checkbox">✅</span></a></li>
+	  <li><a id="2">World</a></li>
+	  <li><a id="3">And</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	  <li><a id="4">Everyone</a></li>
+	</ul>
+      </div>
+    </div>
+  </body>
+</html>

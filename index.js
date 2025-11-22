@@ -1,28 +1,55 @@
-const { app, BrowserWindow } = require('electron')
+import { app, BaseWindow , WebContentsView, Menu } from 'electron'
 
-var args = process.argv;
-console.log(args);
-// Search for first -- arg
-// Or show a welcome dialog instead?
 const accessWebsite = 'https://launcher.keychron.com/'
 
 function createWindow () {
-	const win = new BrowserWindow({
+    const menuTemplate = [
+  {    label: app.getName(),      role: 'appMenu'  },
+  {    role: 'windowMenu'  },
+];
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+
+	const win = new BaseWindow({
 		width: 800,
-		height: 600
+		height: 600,
+	    useContentSize: true,
+	    title: 'Electric USB',
+	    menuBarVisible: false,
+	    webPreferences: {
+		devTools: false
+	    }
 	})
+    const view1 = new WebContentsView({webPreferences:{devTools: false, partition: 'target'}});
+    win.contentView.addChildView(view1);
+
+    const view2 = new WebContentsView({webPreferences:{devTools: false, partition: 'permissions'}});
+    win.contentView.addChildView(view2);
+    view2.setBackgroundColor("#00000000");
+    view2.webContents.loadFile('select-device.html');
+
+    const updateSize = () => {
+	const size = win.getContentSize();
+	const bounds = {x: 0,y: 0,width: size[0],height: size[1]};
+	view1.setBounds(bounds);
+	view2.setBounds(bounds);
+    };
+
+    updateSize();
+    win.on("resize", updateSize);
+
 	let grantedDeviceThroughPermHandler
 
-	win.webContents.session.on('select-hid-device', (event, details, callback) => {
+	view1.webContents.session.on('select-hid-device', (event, details, callback) => {
 	    console.log("Welcome!");
 		// Add events to handle devices being added or removed before the callback on
 		// `select-usb-device` is called
-		win.webContents.session.on('hid-device-added', (event, device) => {
+		view1.webContents.session.on('hid-device-added', (event, device) => {
 			console.log('hid-device-added FIRED WITH', device)
 			// Optionally update details.deviceList
 		})
 
-		win.webContents.session.on('hid-device-removed', (event, device) => {
+		view1.webContents.session.on('hid-device-removed', (event, device) => {
 			console.log('hid-device-removed FIRED WITH', device)
 			// Optionally update details.deviceList
 		})
@@ -43,7 +70,7 @@ function createWindow () {
 		}
 	})
 
-	win.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+	view1.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
 	    // TODO: check origin properly
 	    console.log("Check perm "+ details.securityOrigin + "> "+ permission)
 		if (permission === 'hid' && details.securityOrigin === accessWebsite) {
@@ -52,7 +79,7 @@ function createWindow () {
 		}
 	})
 
-	win.webContents.session.setDevicePermissionHandler((details) => {
+	view1.webContents.session.setDevicePermissionHandler((details) => {
 	    console.log("Handle perm "+ details.device.name + " > " + details.deviceType)
 	    // TODO: check origin properly
 		if (details.deviceType === 'hid' && details.origin === accessWebsite) {
@@ -65,7 +92,7 @@ function createWindow () {
 		}
 	})
 
-	win.webContents.session.setUSBProtectedClassesHandler((details) => {
+	view1.webContents.session.setUSBProtectedClassesHandler((details) => {
 		return details.protectedClasses.filter((usbClass) => {
 		    console.log("Check protected "+usbClass);
 			// Exclude classes except for audio classes
@@ -73,9 +100,7 @@ function createWindow () {
 		})
 	})
 
-
-    // TODO: load website in iframe?
-	win.loadURL(accessWebsite)
+	view1.webContents.loadURL(accessWebsite)
 }
 
 app.whenReady().then(() => {
