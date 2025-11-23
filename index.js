@@ -127,21 +127,11 @@ function createWindow () {
 	})
 
 	webPageView.webContents.session.setPermissionCheckHandler((_webContents, permission, _requestingOrigin, details) => {
-	    // TODO: check origin properly
-		if ((permission === 'hid' || permission === 'usb') && details.securityOrigin === accessWebsite) {
-			return true;
-		} else {
-		    return false;
-		}
+		return (permission === 'hid' || permission === 'usb') && details.securityOrigin.startsWith('https://');
 	})
 
 	webPageView.webContents.session.setDevicePermissionHandler((details) => {
-	    // TODO: check origin properly
-		if (details.deviceType === 'hid' && details.origin === accessWebsite && approvedDevices.includes(details.device)) {
-				return true
-			} else {
-				return false
-			}
+		return details.deviceType === 'hid' && details.origin === 'https://' && approvedDevices.includes(details.device);
 	})
 
 	webPageView.webContents.loadURL(accessWebsite)
