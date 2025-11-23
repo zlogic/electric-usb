@@ -84,9 +84,9 @@
     <div class="center-page">
       <div class="round-border">
 	<h1>Open site</h1>
-	<form>
+	<form id="navForm">
 	  <fieldset>
-	    <input class="text" value="https://" type="text" name="url">
+	    <input class="text" value="https://" type="text" name="url" id="url">
 	    <input class="button" type="submit" value="Go">
 	  </fieldset>
 	</form>
@@ -94,3 +94,12 @@
     </div>
   </body>
 </html>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const urlField = document.querySelector('#url');
+    document.querySelector('#navForm').addEventListener('submit', (event) => {
+    event.preventDefault();
+    window.electronAPI.urlAccepted(urlField.value);
+  });
+});
+</script>
