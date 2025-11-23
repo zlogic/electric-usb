@@ -4,6 +4,8 @@ Electric USB is a very simple Electron app that can load a website and grant it 
 
 It can be useful to access WebUSB devices like [Keychron](https://launcher.keychron.com) or [Logitech](https://logiwebconnect.com).
 
+I use it to adjust my Keychron keyboard and mouse without having to install a second Chrome-based browser.
+
 # How to run it
 
 ```shell
@@ -21,4 +23,3 @@ To specify a custom data dir, use the [--user-data-dir](https://chromium.googles
 # Packaging
 
 Use [Manual packaging](https://www.electronjs.org/docs/latest/tutorial/application-distribution#manual-packaging) to keep things simple.
-

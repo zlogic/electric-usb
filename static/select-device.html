@@ -1,143 +1,155 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
-    />
-    <style type="text/css">
-      body {
-	height: 100vh;
-	margin: 0;
-        user-select: none;
-	font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,Helvetica Neue,Arial,Noto Sans,sans-serif;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-      }
-      .blur-background {
-	position: fixed;
-	width: 100vw;
-	height: 100vh;
-        background-color: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-	top: 0;
-	left: 0;
-	z-index: -1;
-      }
-      .center-page {
-	align-self: center;
-      }
-      .round-border {
-        border: 1px solid #ccc;
-	border-radius: 10px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	padding: 10px;
-	background-color: #fff;
-	display: flex;
-	flex-direction: column;
-	max-height: 80vh;
-	overflow: clip;
-      }
-      .no-shrink {
-	flex-shrink: 0;
-      }
-      ul {
-	list-style: none outside none;
-	margin: 0;
-	padding: 0;
-        border: 1px solid #ccc;
-        border-radius: 10px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	overflow: auto;
-	flex-shrink: 1;
-      }
-      li {
-	border-bottom: 1px solid #ccc;
-      }
-      li:last-child {
-	border-bottom: none;
-      }
-      span.checkbox {
-	float: right;
-      }
-      li>a {
-	display: block;
-	padding: 10px;
-      }
-      li>a:hover {
-	background: #666;
-	color: #fff;
-      }
-      li>a:active {
-	background: #f90;
-	color: #fff;
-      }
-      li:first-child>a:hover {
-	border-radius: 9px 9px 0 0;
-	-webkit-border-radius: 9px 9px 0 0;
-	-moz-border-radius: 9px 9px 0 0;
-      }
-      li:last-child>a:hover {
-	border-radius: 0 0 9px 9px;
-	-webkit-border-radius: 0 0 9px 9px;
-	-moz-border-radius: 0 0 9px 9px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="blur-background"></div>
-    <div class="center-page">
-      <div class="round-border">
-        <h1 class="no-shrink">Approve USB device permissions</h1>
-        <p class="no-shrink">Request from <span id="origin"></span></p>
-	<ul id="devicesList"></ul>
-      </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" />
+  <meta http-equiv="X-Content-Security-Policy"
+    content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" />
+  <style type="text/css">
+    body {
+      height: 100vh;
+      margin: 0;
+      user-select: none;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Helvetica Neue, Arial, Noto Sans, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .blur-background {
+      position: fixed;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      top: 0;
+      left: 0;
+      z-index: -1;
+    }
+
+    .center-page {
+      align-self: center;
+    }
+
+    .round-border {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      padding: 10px;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      max-height: 80vh;
+      overflow: clip;
+    }
+
+    .no-shrink {
+      flex-shrink: 0;
+    }
+
+    ul {
+      list-style: none outside none;
+      margin: 0;
+      padding: 0;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      overflow: auto;
+      flex-shrink: 1;
+    }
+
+    li {
+      border-bottom: 1px solid #ccc;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    span.checkbox {
+      float: right;
+    }
+
+    li>a {
+      display: block;
+      padding: 10px;
+    }
+
+    li>a:hover {
+      background: #666;
+      color: #fff;
+    }
+
+    li>a:active {
+      background: #f90;
+      color: #fff;
+    }
+
+    li:first-child>a:hover {
+      border-radius: 9px 9px 0 0;
+      -webkit-border-radius: 9px 9px 0 0;
+      -moz-border-radius: 9px 9px 0 0;
+    }
+
+    li:last-child>a:hover {
+      border-radius: 0 0 9px 9px;
+      -webkit-border-radius: 0 0 9px 9px;
+      -moz-border-radius: 0 0 9px 9px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="blur-background"></div>
+  <div class="center-page">
+    <div class="round-border">
+      <h1 class="no-shrink">Approve USB device permissions</h1>
+      <p class="no-shrink">Request from <span id="origin"></span></p>
+      <ul id="devicesList"></ul>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const devicesListElement = document.querySelector("#devicesList");
-  const originElement = document.querySelector("#origin");
-  const updateDevicesList = (origin, devices) => {
-    originElement.textContent = origin;
-    while(devicesListElement.firstChild) {
-      devicesListElement.removeChild(devicesListElement.firstChild);
-    }
-    for (const device of devices) {
-      let deviceItem = document.createElement("li");
-      let deviceLink = document.createElement("a");
-      let deviceName = device.name;
-      if (deviceName === undefined && device.productName !== undefined) {
-        deviceName = device.productName;
+  document.addEventListener('DOMContentLoaded', () => {
+    const devicesListElement = document.querySelector("#devicesList");
+    const originElement = document.querySelector("#origin");
+    const updateDevicesList = (origin, devices) => {
+      originElement.textContent = origin;
+      while (devicesListElement.firstChild) {
+        devicesListElement.removeChild(devicesListElement.firstChild);
       }
-      if (device.serialNumber !== undefined) {
-	deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ' ' + device.serialNumber + ']';
-      } else {
-        deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ']';
+      for (const device of devices) {
+        let deviceItem = document.createElement("li");
+        let deviceLink = document.createElement("a");
+        let deviceName = device.name;
+        if (deviceName === undefined && device.productName !== undefined) {
+          deviceName = device.productName;
+        }
+        if (device.serialNumber !== undefined) {
+          deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ' ' + device.serialNumber + ']';
+        } else {
+          deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ']';
+        }
+        if (device.approved) {
+          deviceLink.insertAdjacentHTML('beforeend', '<span class="checkbox">✅</span>');
+        }
+        deviceLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          window.electronAPI.deviceSelected(device.deviceId);
+        });
+        deviceItem.append(deviceLink);
+        devicesListElement.append(deviceItem);
       }
-      if (device.approved) {
-	deviceLink.insertAdjacentHTML('beforeend', '<span class="checkbox">✅</span>');
-      }
-      deviceLink.addEventListener('click', (event) => {
-	event.preventDefault();
-	window.electronAPI.deviceSelected(device.deviceId);
-      });
-      deviceItem.append(deviceLink);
-      devicesListElement.append(deviceItem);
-    }
-  };
+    };
 
-  window.electronAPI.onSelectDevice(updateDevicesList);
-});
+    window.electronAPI.onSelectDevice(updateDevicesList);
+  });
 </script>

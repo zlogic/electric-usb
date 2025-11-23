@@ -1,105 +1,112 @@
-
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
-    />
-    <meta
-      http-equiv="X-Content-Security-Policy"
-      content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'"
-    />
-    <style type="text/css">
-      body {
-	height: 100vh;
-	margin: 0;
-        user-select: none;
-	font-family: -apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,Helvetica Neue,Arial,Noto Sans,sans-serif;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	background: #666;
-      }
-      .center-page {
-	align-self: center;
-	width: 80%;
-      }
-      .round-border {
-        border: 1px solid #ccc;
-	border-radius: 10px;
-	-webkit-border-radius: 10px;
-	-moz-border-radius: 10px;
-	padding: 10px;
-	background-color: #fff;
-	display: flex;
-	flex-direction: column;
-	max-height: 80vh;
-	width: 100%;
-      }
-      form {
-        display: block;
-	box-sizing: border-box;
-      }
-      fieldset {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	display: inline-flex;
-	box-shadow: rgba(0, 0, 0, 0);
-	width: 100%;
-      }
-      fieldset:focus-within > input {
-	box-shadow: 0 0 0 2px #f90;
-        border: 1px solid #f90;
-	outline: 0;
-      }
-      fieldset:focus-within > input.button {
-	color: #fff;
-	background-color: #f90;
-      }
-      input.text {
-	flex-grow: 1;
-	display: inline-flex;
-	border-radius: 10px 0 0 10px;
-      }
-      input.button {
-	flex-grow: 0;
-	border-radius: 0 10px 10px 0;
-      }
-      input {
-	font-size: medium;
-	padding: 10px;
-        border: 1px solid #ccc;
-	border-radius: 5px;
-	transition-property: background-color, border-color, color, box-shadow;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="blur-background"></div>
-    <div class="center-page">
-      <div class="round-border">
-	<h1>Open site</h1>
-	<form id="navForm">
-	  <fieldset>
-	    <input class="text" value="https://" type="text" name="url" id="url">
-	    <input class="button" type="submit" value="Go">
-	  </fieldset>
-	</form>
-      </div>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" />
+  <meta http-equiv="X-Content-Security-Policy"
+    content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'" />
+  <style type="text/css">
+    body {
+      height: 100vh;
+      margin: 0;
+      user-select: none;
+      font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Helvetica Neue, Arial, Noto Sans, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #666;
+    }
+
+    .center-page {
+      align-self: center;
+      width: 80%;
+    }
+
+    .round-border {
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      padding: 10px;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      max-height: 80vh;
+      width: 100%;
+    }
+
+    form {
+      display: block;
+      box-sizing: border-box;
+    }
+
+    fieldset {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      display: inline-flex;
+      box-shadow: rgba(0, 0, 0, 0);
+      width: 100%;
+    }
+
+    fieldset:focus-within>input {
+      box-shadow: 0 0 0 2px #f90;
+      border: 1px solid #f90;
+      outline: 0;
+    }
+
+    fieldset:focus-within>input.button {
+      color: #fff;
+      background-color: #f90;
+    }
+
+    input.text {
+      flex-grow: 1;
+      display: inline-flex;
+      border-radius: 10px 0 0 10px;
+    }
+
+    input.button {
+      flex-grow: 0;
+      border-radius: 0 10px 10px 0;
+    }
+
+    input {
+      font-size: medium;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      transition-property: background-color, border-color, color, box-shadow;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="blur-background"></div>
+  <div class="center-page">
+    <div class="round-border">
+      <h1>Open site</h1>
+      <form id="navForm">
+        <fieldset>
+          <input class="text" value="https://" type="text" name="url" id="url">
+          <input class="button" type="submit" value="Go">
+        </fieldset>
+      </form>
     </div>
-  </body>
+  </div>
+</body>
+
 </html>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const urlField = document.querySelector('#url');
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlField = document.querySelector('#url');
     document.querySelector('#navForm').addEventListener('submit', (event) => {
-    event.preventDefault();
-    window.electronAPI.urlAccepted(urlField.value);
+      event.preventDefault();
+      window.electronAPI.urlAccepted(urlField.value);
+    });
   });
-});
 </script>
