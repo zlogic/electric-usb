@@ -22,11 +22,11 @@ function createWindow () {
 		devTools: false
 	    }
 	})
-    const webPageView = new WebContentsView({webPreferences:{devTools: false, partition: 'target'}});
+    // Using a custom partition will result in a segmentation fault
+    const webPageView = new WebContentsView({webPreferences:{devTools: false}});
     win.contentView.addChildView(webPageView);
 
-    const allowUsbView = new WebContentsView({webPreferences:{preload: path.join(__dirname, 'static', 'preload.js'), devTools: false, partition: 'permissions'}});
-    allowUsbView.setBackgroundColor("#00000000");
+    const allowUsbView = new WebContentsView({webPreferences:{preload: path.join(__dirname, 'static', 'preload.js'), devTools: false, transparent: true, partition: 'permissions'}});
     allowUsbView.webContents.loadFile('static/select-device.html');
 
     const updateSize = () => {
@@ -40,33 +40,11 @@ function createWindow () {
     win.on("resize", updateSize);
 
 	let approvedDevices = [];
-        let selectDeviceCallback = undefined;
-
-	webPageView.webContents.session.on('select-hid-device', (event, details, callback) => {
-	    if (selectDeviceCallback !== undefined) {
-		callback();
-		return;
-	    }
-    win.contentView.addChildView(allowUsbView);
-
-		// Add events to handle devices being added or removed before the callback on
-		// `select-usb-device` is called
-		webPageView.webContents.session.on('hid-device-added', (_event, device) => {
-			console.log('hid-device-added FIRED WITH', device)
-			// Optionally update details.deviceList
-		})
-
-		webPageView.webContents.session.on('hid-device-removed', (_event, device) => {
-			console.log('hid-device-removed FIRED WITH', device)
-			// Optionally update details.deviceList
-		})
-
-		event.preventDefault()
-
-	    let devices = details.deviceList.map((device) => {
+	    let convertDevices = (devices) => devices.map((device) => {
 		return {
 		    deviceId: device.deviceId,
 		    name: device.name,
+		    productName: device.productName,
 		    vendorId: device.vendorId,
 		    productId: device.productId,
 		    serialNumber: device.serialNumber,
@@ -74,24 +52,86 @@ function createWindow () {
 		    approved: approvedDevices.includes(device.deviceId),
 		};
 	    });
-	    allowUsbView.webContents.send('select-device', devices);
+        let selectDeviceCallback = undefined;
+	ipcMain.on('device-selected', (_event, deviceId) => {
+	    if (selectDeviceCallback !== undefined) {
+	      selectDeviceCallback(deviceId);
+	    }
+	    selectDeviceCallback = undefined;
+	    if (!approvedDevices.includes(deviceId)) {
+	      approvedDevices.push(deviceId);
+	    }
+	    win.contentView.removeChildView(allowUsbView);
+	});
+
+	webPageView.webContents.session.on('select-usb-device', (event, details, callback) => {
+	    if (selectDeviceCallback !== undefined) {
+		event.preventDefault()
+		callback();
+		return;
+	    }
+
+	    const origin = details.frame.origin;
+
+    win.contentView.addChildView(allowUsbView);
+
+		webPageView.webContents.session.on('usb-device-added', (_event, device) => {
+		    const added = device.device;
+		    if (!details.deviceList.some((existing) => existing.deviceId === added.deviceId)) {
+			details.deviceList.push(added);
+		    }
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+		})
+
+		webPageView.webContents.session.on('usb-device-removed', (_event, device) => {
+		    const removed = device.device;
+		    details.deviceList = details.deviceList.filter((existing) => existing.deviceId !== removed.deviceId);
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+		})
+
+		event.preventDefault()
+
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
 	    selectDeviceCallback = callback;
-	    ipcMain.on('device-selected', (_event, deviceId) => {
-		if (selectDeviceCallback !== undefined) {
-		  selectDeviceCallback(deviceId);
-		}
-		selectDeviceCallback = undefined;
-		if (!approvedDevices.includes(deviceId)) {
-		  approvedDevices.push(deviceId);
-		}
-		win.contentView.removeChildView(allowUsbView);
-	    });
+	})
+
+	webPageView.webContents.session.on('select-hid-device', (event, details, callback) => {
+	    if (selectDeviceCallback !== undefined) {
+		event.preventDefault()
+		callback();
+		return;
+	    }
+
+	    const origin = details.frame.origin;
+
+    win.contentView.addChildView(allowUsbView);
+
+		webPageView.webContents.session.on('hid-device-added', (_event, device) => {
+		    const added = device.device;
+		    if (!details.deviceList.some((existing) => existing.deviceId === added.deviceId)) {
+			details.deviceList.push(added);
+		    }
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+		})
+
+		webPageView.webContents.session.on('hid-device-removed', (_event, device) => {
+		    const removed = device.device;
+		    details.deviceList = details.deviceList.filter((existing) => existing.deviceId !== removed.deviceId);
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+		})
+
+		event.preventDefault()
+
+		allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+	    selectDeviceCallback = callback;
 	})
 
 	webPageView.webContents.session.setPermissionCheckHandler((_webContents, permission, _requestingOrigin, details) => {
 	    // TODO: check origin properly
-		if (permission === 'hid' && details.securityOrigin === accessWebsite) {
-			return true
+		if ((permission === 'hid' || permission === 'usb') && details.securityOrigin === accessWebsite) {
+			return true;
+		} else {
+		    return false;
 		}
 	})
 

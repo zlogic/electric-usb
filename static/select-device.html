@@ -99,7 +99,7 @@
     <div class="center-page">
       <div class="round-border">
         <h1 class="no-shrink">Approve USB device permissions</h1>
-        <p class="no-shrink">Request from <span id="origin">https://launcher.keychron.com/</span></p>
+        <p class="no-shrink">Request from <span id="origin"></span></p>
 	<ul id="devicesList"></ul>
       </div>
     </div>
@@ -107,19 +107,24 @@
 </html>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const devicesList = document.querySelector("#devicesList");
-  const updateDevicesList = (devices) => {
-    while(devicesList.firstChild) {
-      devicesList.removeChild(devicesList.firstChild);
+  const devicesListElement = document.querySelector("#devicesList");
+  const originElement = document.querySelector("#origin");
+  const updateDevicesList = (origin, devices) => {
+    originElement.textContent = origin;
+    while(devicesListElement.firstChild) {
+      devicesListElement.removeChild(devicesListElement.firstChild);
     }
     for (const device of devices) {
       let deviceItem = document.createElement("li");
       let deviceLink = document.createElement("a");
-      deviceLink.textContent = device.name + device.guid;
+      let deviceName = device.name;
+      if (deviceName === undefined && device.productName !== undefined) {
+        deviceName = device.productName;
+      }
       if (device.serialNumber !== undefined) {
-	deviceLink.textContent = device.name + ' [' + device.vendorId + ':' + device.productId + ' ' + device.serialNumber + ']';
+	deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ' ' + device.serialNumber + ']';
       } else {
-        deviceLink.textContent = device.name + ' [' + device.vendorId + ':' + device.productId + ']';
+        deviceLink.textContent = deviceName + ' [' + device.vendorId + ':' + device.productId + ']';
       }
       if (device.approved) {
 	deviceLink.insertAdjacentHTML('beforeend', '<span class="checkbox">✅</span>');
@@ -129,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	window.electronAPI.deviceSelected(device.deviceId);
       });
       deviceItem.append(deviceLink);
-      devicesList.append(deviceItem);
+      devicesListElement.append(deviceItem);
     }
   };
 
