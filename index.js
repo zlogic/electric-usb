@@ -4,24 +4,21 @@ const __dirname = import.meta.dirname;
 
 
 function createWindow() {
-  if (process.platform === 'darwin') {
-    const menuTemplate = [
-      { label: app.getName(), role: 'appMenu' },
-      { role: 'windowMenu' },
-    ];
-    const menu = Menu.buildFromTemplate(menuTemplate);
-    Menu.setApplicationMenu(menu);
-  }
-
+  const menuTemplate = [
+    { label: app.getName(), role: 'appMenu' },
+    { role: 'windowMenu' },
+  ];
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 
   const win = new BaseWindow({
     width: 800,
     height: 600,
-    useContentSize: true,
+    useContentSize: false,
     title: 'Electric USB',
-    menuBarVisible: false,
     webPreferences: { devTools: false, session: session.fromPartition('main', { cache: false }) }
   })
+  win.menuBarVisible = false;
   // The web session partition needs to be persisted; otherwise, attempting to list USB devices will cause a segmentation fault.
   let webSession = session.fromPartition('persist:target', { cache: false });
   const webPageView = new WebContentsView({ webPreferences: { devTools: false, session: webSession } });
