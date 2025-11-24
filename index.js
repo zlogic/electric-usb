@@ -1,14 +1,18 @@
-import { app, BaseWindow, WebContentsView, Menu, ipcMain } from 'electron'
+import { app, BaseWindow, WebContentsView, Menu, ipcMain, session } from 'electron'
 import path from 'node:path'
 const __dirname = import.meta.dirname;
 
+
 function createWindow() {
-  const menuTemplate = [
-    { label: app.getName(), role: 'appMenu' },
-    { role: 'windowMenu' },
-  ];
-  const menu = Menu.buildFromTemplate(menuTemplate);
-  Menu.setApplicationMenu(menu);
+  if (process.platform === 'darwin') {
+    const menuTemplate = [
+      { label: app.getName(), role: 'appMenu' },
+      { role: 'windowMenu' },
+    ];
+    const menu = Menu.buildFromTemplate(menuTemplate);
+    Menu.setApplicationMenu(menu);
+  }
+
 
   const win = new BaseWindow({
     width: 800,
@@ -16,17 +20,31 @@ function createWindow() {
     useContentSize: true,
     title: 'Electric USB',
     menuBarVisible: false,
-    webPreferences: { devTools: false }
+    webPreferences: { devTools: false, session: session.fromPartition('main', { cache: false }) }
   })
-  // Sepecifying a custom here partition will result in a segmentation fault when trying to access USB devices.
-  const webPageView = new WebContentsView({ webPreferences: { devTools: false } });
+  // The web session partition needs to be persisted; otherwise, attempting to list USB devices will cause a segmentation fault.
+  let webSession = session.fromPartition('persist:target', { cache: false });
+  const webPageView = new WebContentsView({ webPreferences: { devTools: false, session: webSession } });
+  win.on('close', async (_event) => {
+    if (webSession !== undefined) {
+      await webSession.clearStorageData({});
+      webSession.removeAllListeners('select-usb-device');
+      webSession.removeAllListeners('select-hid-device');
+      webSession.removeAllListeners('usb-device-added');
+      webSession.removeAllListeners('hid-device-added');
+      webSession.removeAllListeners('usb-device-removed');
+      webSession.removeAllListeners('hid-device-removed');
+      webSession = undefined;
+    }
+  });
+
 
   const allowUsbView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'static', 'preload-select-device.js'),
       devTools: false,
       transparent: true,
-      partition: 'permissions'
+      session: session.fromPartition('permissions', { cache: false })
     }
   });
   allowUsbView.webContents.loadFile('static/select-device.html');
@@ -66,7 +84,7 @@ function createWindow() {
     };
   });
   let selectDeviceCallback = undefined;
-  ipcMain.on('device-selected', (_event, deviceId) => {
+  const onDeviceSelected = (_event, deviceId) => {
     if (selectDeviceCallback !== undefined) {
       selectDeviceCallback(deviceId);
     }
@@ -75,7 +93,9 @@ function createWindow() {
       approvedDevices.push(deviceId);
     }
     win.contentView.removeChildView(allowUsbView);
-  });
+  };
+  ipcMain.on('device-selected', onDeviceSelected);
+  win.on('closed', (_event) => ipcMain.off('device-selected', onDeviceSelected));
 
   webPageView.webContents.session.on('select-usb-device', (event, details, callback) => {
     if (selectDeviceCallback !== undefined) {
@@ -89,7 +109,7 @@ function createWindow() {
     win.contentView.addChildView(allowUsbView);
 
     webPageView.webContents.session.on('usb-device-added', (_event, device) => {
-      const added = device.device;
+      const added = device;
       if (!details.deviceList.some((existing) => existing.deviceId === added.deviceId)) {
         details.deviceList.push(added);
       }
@@ -97,7 +117,8 @@ function createWindow() {
     })
 
     webPageView.webContents.session.on('usb-device-removed', (_event, device) => {
-      const removed = device.device;
+      const removed = device;
+
       details.deviceList = details.deviceList.filter((existing) => existing.deviceId !== removed.deviceId);
       allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
     })
@@ -149,13 +170,14 @@ function createWindow() {
 
   win.contentView.addChildView(startPageView);
 
-  ipcMain.on('url-accepted', (_event, url) => {
+  const onUrlAccepted = (_event, url) => {
     win.contentView.removeChildView(startPageView);
     startPageView = undefined;
     webPageView.webContents.loadURL(url)
     win.contentView.addChildView(webPageView);
-  });
-
+  };
+  ipcMain.on('url-accepted', onUrlAccepted);
+  win.on('closed', (_event) => ipcMain.off('url-accepted', onUrlAccepted));
 }
 
 app.whenReady().then(() => {
@@ -173,3 +195,4 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
+
