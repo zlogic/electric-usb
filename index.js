@@ -22,18 +22,6 @@ function createWindow() {
   // The web session partition needs to be persisted; otherwise, attempting to list USB devices will cause a segmentation fault.
   let webSession = session.fromPartition('persist:target', { cache: false });
   const webPageView = new WebContentsView({ webPreferences: { devTools: false, session: webSession } });
-  win.on('close', async (_event) => {
-    if (webSession !== undefined) {
-      await webSession.clearStorageData({});
-      webSession.removeAllListeners('select-usb-device');
-      webSession.removeAllListeners('select-hid-device');
-      webSession.removeAllListeners('usb-device-added');
-      webSession.removeAllListeners('hid-device-added');
-      webSession.removeAllListeners('usb-device-removed');
-      webSession.removeAllListeners('hid-device-removed');
-      webSession = undefined;
-    }
-  });
 
 
   const allowUsbView = new WebContentsView({
@@ -175,6 +163,27 @@ function createWindow() {
   };
   ipcMain.on('url-accepted', onUrlAccepted);
   win.on('closed', (_event) => ipcMain.off('url-accepted', onUrlAccepted));
+
+  win.on('close', async (_event) => {
+    if (startPageView !== undefined) {
+      win.contentView.removeChildView(startPageView);
+      startPageView.webContents.close();
+    }
+    win.contentView.removeChildView(webPageView);
+    webPageView.webContents.close();
+    win.contentView.removeChildView(allowUsbView);
+    allowUsbView.webContents.close();
+    if (webSession !== undefined) {
+      await webSession.clearStorageData({});
+      webSession.removeAllListeners('select-usb-device');
+      webSession.removeAllListeners('select-hid-device');
+      webSession.removeAllListeners('usb-device-added');
+      webSession.removeAllListeners('hid-device-added');
+      webSession.removeAllListeners('usb-device-removed');
+      webSession.removeAllListeners('hid-device-removed');
+      webSession = undefined;
+    }
+  });
 }
 
 app.whenReady().then(() => {
