@@ -56,8 +56,15 @@ function createWindow() {
   win.on("resize", updateSize);
 
   let approvedDevices = [];
-  let convertDevices = (devices) => devices.map((device) => {
+  let isDeviceApproved = (checkDevice, deviceType) => approvedDevices.some((approvedDevice) => 
+      approvedDevice.deviceType === deviceType &&
+      (approvedDevice.deviceId === checkDevice.deviceId || 
+      (approvedDevice.vendorId === checkDevice.vendorId && approvedDevice.productId === checkDevice.productId &&
+      (approvedDevice.serialNumber === undefined || approvedDevice.serialNumber === checkDevice.serialNumber)))
+  );
+  let convertDevices = (devices, deviceType) => devices.map((device) => {
     return {
+      deviceType: deviceType,
       deviceId: device.deviceId,
       name: device.name,
       productName: device.productName,
@@ -65,17 +72,17 @@ function createWindow() {
       productId: device.productId,
       serialNumber: device.serialNumber,
       guid: device.guid,
-      approved: approvedDevices.includes(device.deviceId),
+      approved: isDeviceApproved(device, deviceType),
     };
   });
   let selectDeviceCallback = undefined;
-  const onDeviceSelected = (_event, deviceId) => {
+  const onDeviceSelected = (_event, device) => {
     if (selectDeviceCallback !== undefined) {
-      selectDeviceCallback(deviceId);
+      selectDeviceCallback(device.deviceId);
     }
     selectDeviceCallback = undefined;
-    if (!approvedDevices.includes(deviceId)) {
-      approvedDevices.push(deviceId);
+    if (!isDeviceApproved(device, device.deviceType)) {
+      approvedDevices.push(device);
     }
     win.contentView.removeChildView(allowUsbView);
   };
@@ -98,19 +105,19 @@ function createWindow() {
       if (!details.deviceList.some((existing) => existing.deviceId === added.deviceId)) {
         details.deviceList.push(added);
       }
-      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'usb'));
     })
 
     webPageView.webContents.session.on('usb-device-removed', (_event, device) => {
       const removed = device;
 
       details.deviceList = details.deviceList.filter((existing) => existing.deviceId !== removed.deviceId);
-      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'usb'));
     })
 
     event.preventDefault()
 
-    allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+    allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'usb'));
     selectDeviceCallback = callback;
   })
 
@@ -130,18 +137,18 @@ function createWindow() {
       if (!details.deviceList.some((existing) => existing.deviceId === added.deviceId)) {
         details.deviceList.push(added);
       }
-      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'hid'));
     })
 
     webPageView.webContents.session.on('hid-device-removed', (_event, device) => {
       const removed = device.device;
       details.deviceList = details.deviceList.filter((existing) => existing.deviceId !== removed.deviceId);
-      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+      allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'hid'));
     })
 
     event.preventDefault()
 
-    allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList));
+    allowUsbView.webContents.send('select-device', origin, convertDevices(details.deviceList, 'hid'));
     selectDeviceCallback = callback;
   })
 
@@ -150,7 +157,7 @@ function createWindow() {
   })
 
   webPageView.webContents.session.setDevicePermissionHandler((details) => {
-    return details.deviceType === 'hid' && details.origin === 'https://' && approvedDevices.includes(details.device);
+    return (details.deviceType === 'hid' || details.deviceType === 'usb') && details.origin.startsWith('https://') && isDeviceApproved(details.device, details.deviceType);
   })
 
   win.contentView.addChildView(startPageView);

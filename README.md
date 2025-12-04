@@ -20,6 +20,8 @@ or
 
 To specify a custom data dir, use the [--user-data-dir](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md#overriding-the-user-data-directory) argument.
 
+To enable additional logging, set the `ELECTRON_ENABLE_LOGGING=1` environment variable.
+
 # Packaging
 
 Use [Manual packaging](https://www.electronjs.org/docs/latest/tutorial/application-distribution#manual-packaging) to keep things simple.

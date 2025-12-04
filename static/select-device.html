@@ -143,7 +143,7 @@
         }
         deviceLink.addEventListener('click', (event) => {
           event.preventDefault();
-          window.electronAPI.deviceSelected(device.deviceId);
+	    window.electronAPI.deviceSelected({deviceType: device.deviceType, deviceId: device.deviceId, vendorId: device.vendorId, productId: device.productId, serialNumber: device.serialNumber});
         });
         deviceItem.append(deviceLink);
         devicesListElement.append(deviceItem);
