@@ -2,6 +2,7 @@ import { app, BaseWindow, WebContentsView, Menu, ipcMain, session } from 'electr
 import path from 'node:path'
 const __dirname = import.meta.dirname;
 
+const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36';
 
 function createWindow() {
   const menuTemplate = [
@@ -165,7 +166,7 @@ function createWindow() {
   const onUrlAccepted = (_event, url) => {
     win.contentView.removeChildView(startPageView);
     startPageView = undefined;
-    webPageView.webContents.loadURL(url)
+    webPageView.webContents.loadURL(url, {'userAgent': userAgent})
     win.contentView.addChildView(webPageView);
   };
   ipcMain.on('url-accepted', onUrlAccepted);
